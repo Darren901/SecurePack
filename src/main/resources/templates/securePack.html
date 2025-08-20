@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorator="default">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecurePack</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 15px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background-color: #e3f2fd;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background-color: #e3f2fd;
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .selected-file {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="text-center mb-4">
+                <h1 class="display-4 fw-bold text-primary">
+                    <i class="fas fa-file-archive me-3"></i>SecurePack
+                </h1>
+                <p class="lead text-muted">支援 ZIP、RAR、7Z 格式，提供密碼加密保護</p>
+            </div>
+
+            <!-- 操作選擇 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>選擇操作類型</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-primary w-100 operation-btn" data-operation="compress">
+                                <i class="fas fa-compress-arrows-alt me-2"></i>壓縮檔案
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-success w-100 operation-btn" data-operation="decompress">
+                                <i class="fas fa-expand-arrows-alt me-2"></i>解壓縮檔案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主要操作區域 -->
+            <div class="card" id="mainOperationCard" style="display: none;">
+                <div class="card-header">
+                    <h5 class="mb-0" id="operationTitle">
+                        <i class="fas fa-upload me-2"></i>檔案處理
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 檔案上傳區域 -->
+                    <div class="file-upload-area mb-4" id="fileUploadArea">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">點擊選擇檔案或拖拽檔案到此處</h5>
+                        <p class="text-muted mb-0">支援各種格式檔案</p>
+                        <input type="file" id="fileInput" class="d-none">
+                    </div>
+
+                    <!-- 選中的檔案顯示 -->
+                    <div id="selectedFileInfo" class="selected-file" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="fas fa-file me-2"></i>
+                                <span id="fileName"></span>
+                                <small class="text-muted ms-2" id="fileSize"></small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="removeFile">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 壓縮選項 -->
+                    <div id="compressionOptions" style="display: none;">
+                        <hr>
+                        <h6><i class="fas fa-cog me-2"></i>壓縮設定</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="formatSelect" class="form-label">壓縮格式</label>
+                                <select class="form-select" id="formatSelect">
+                                    <option value="zip">ZIP</option>
+                                    <option value="rar">RAR</option>
+                                    <option value="7z">7Z</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="passwordInput" class="form-label">密碼保護 (可選)</label>
+                                <input type="password" class="form-control" id="passwordInput" placeholder="輸入密碼以加密檔案">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 解壓縮選項 -->
+                    <div id="decompressionOptions" style="display: none;">
+                        <hr>
+                        <h6><i class="fas fa-unlock me-2"></i>解壓縮設定</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="decompressPasswordInput" class="form-label">密碼 (如果檔案有加密)</label>
+                                <input type="password" class="form-control" id="decompressPasswordInput" placeholder="輸入密碼以解壓縮加密檔案">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 處理按鈕 -->
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary btn-lg" id="processBtn" disabled>
+                                <span class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                </span>
+                            <span id="processBtnText">開始處理</span>
+                        </button>
+                    </div>
+
+                    <!-- 進度條 -->
+                    <div id="progressSection" class="mt-4" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-center mt-2 mb-0" id="progressText">準備中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果顯示 -->
+            <div id="resultSection" style="display: none;">
+                <div class="alert alert-success mt-4">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-check-circle me-2"></i>處理完成！
+                    </h6>
+                    <p class="mb-0">您的檔案已成功處理，下載將自動開始。</p>
+                </div>
+            </div>
+
+            <!-- 錯誤顯示 -->
+            <div id="errorSection" style="display: none;">
+                <div class="alert alert-danger mt-4">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>處理失敗
+                    </h6>
+                    <p class="mb-0" id="errorMessage">發生未知錯誤，請重試。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    let selectedFile = null;
+    let currentOperation = null;
+
+    // 操作類型選擇
+    document.querySelectorAll('.operation-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentOperation = this.dataset.operation;
+
+            // 更新按鈕狀態
+            document.querySelectorAll('.operation-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            // 顯示主操作區域
+            document.getElementById('mainOperationCard').style.display = 'block';
+
+            // 更新標題和選項
+            if (currentOperation === 'compress') {
+                document.getElementById('operationTitle').innerHTML = '<i class="fas fa-compress-arrows-alt me-2"></i>檔案壓縮';
+                document.getElementById('compressionOptions').style.display = 'block';
+                document.getElementById('decompressionOptions').style.display = 'none';
+                document.getElementById('processBtnText').textContent = '開始壓縮';
+            } else {
+                document.getElementById('operationTitle').innerHTML = '<i class="fas fa-expand-arrows-alt me-2"></i>檔案解壓縮';
+                document.getElementById('compressionOptions').style.display = 'none';
+                document.getElementById('decompressionOptions').style.display = 'block';
+                document.getElementById('processBtnText').textContent = '開始解壓縮';
+            }
+
+            // 重置檔案選擇
+            resetFileSelection();
+        });
+    });
+
+    // 檔案上傳區域事件
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('fileInput');
+
+    fileUploadArea.addEventListener('click', () => fileInput.click());
+
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelection(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+
+    // 移除檔案按鈕
+    document.getElementById('removeFile').addEventListener('click', resetFileSelection);
+
+    // 處理檔案選擇
+    function handleFileSelection(file) {
+        selectedFile = file;
+
+        // 顯示檔案資訊
+        document.getElementById('selectedFileInfo').style.display = 'block';
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatFileSize(file.size);
+
+        // 啟用處理按鈕
+        document.getElementById('processBtn').disabled = false;
+
+        // 隱藏結果和錯誤區域
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('errorSection').style.display = 'none';
+
+        // 如果是解壓縮，嘗試從檔案名稱判斷格式
+        if (currentOperation === 'decompress') {
+            const fileName = file.name.toLowerCase();
+            let detectedFormat = 'zip';
+            if (fileName.endsWith('.rar')) {
+                detectedFormat = 'rar';
+            } else if (fileName.endsWith('.7z')) {
+                detectedFormat = '7z';
+            }
+            // 為解壓縮隱式設定格式
+            selectedFile.detectedFormat = detectedFormat;
+        }
+    }
+
+    // 重置檔案選擇
+    function resetFileSelection() {
+        selectedFile = null;
+        document.getElementById('selectedFileInfo').style.display = 'none';
+        document.getElementById('processBtn').disabled = true;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('errorSection').style.display = 'none';
+    }
+
+    // 格式化檔案大小
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 處理按鈕點擊
+    document.getElementById('processBtn').addEventListener('click', async function() {
+        if (!selectedFile || !currentOperation) return;
+
+        const processBtn = this;
+        const loadingSpinner = document.querySelector('.loading-spinner');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.querySelector('.progress-bar');
+        const progressText = document.getElementById('progressText');
+
+        try {
+            // 更新UI狀態
+            processBtn.disabled = true;
+            loadingSpinner.style.display = 'inline';
+            progressSection.style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+
+            // 準備請求數據
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            // 添加壓縮選項作為表單參數
+            if (currentOperation === 'compress') {
+                formData.append('format', document.getElementById('formatSelect').value);
+                const password = document.getElementById('passwordInput').value;
+                if (password) {
+                    formData.append('password', password);
+                }
+            } else {
+                formData.append('format', selectedFile.detectedFormat || 'zip');
+                const password = document.getElementById('decompressPasswordInput').value;
+                if (password) {
+                    formData.append('password', password);
+                }
+            }
+
+            // 模擬進度更新
+            progressText.textContent = '正在上傳檔案...';
+            progressBar.style.width = '30%';
+
+            // 發送請求
+            const endpoint = currentOperation === 'compress' ? '/compress' : '/decompress';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: formData
+                // 不要手動設定 Content-Type，讓瀏覽器自動設定 multipart/form-data
+            });
+
+            progressText.textContent = '正在處理檔案...';
+            progressBar.style.width = '70%';
+
+            if (response.ok) {
+                progressText.textContent = '處理完成，準備下載...';
+                progressBar.style.width = '100%';
+
+                // 處理檔案下載
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                // 從response headers獲取檔案名稱
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'processed_file';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1].replace(/['"]/g, '');
+                    }
+                }
+
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                // 顯示成功訊息
+                document.getElementById('resultSection').style.display = 'block';
+            } else {
+                // 處理錯誤
+                const errorText = await response.text();
+                throw new Error(errorText || '處理檔案時發生錯誤');
+            }
+
+        } catch (error) {
+            console.error('處理錯誤:', error);
+            document.getElementById('errorMessage').textContent = error.message;
+            document.getElementById('errorSection').style.display = 'block';
+            progressText.textContent = '處理失敗';
+            progressBar.style.width = '0%';
+        } finally {
+            // 重置UI狀態
+            processBtn.disabled = false;
+            loadingSpinner.style.display = 'none';
+            setTimeout(() => {
+                progressSection.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 2000);
+        }
+    });
+</script>
+</body>
+</html>
