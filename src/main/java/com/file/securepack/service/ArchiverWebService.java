@@ -57,8 +57,9 @@ public class ArchiverWebService {
                 // 將解壓縮後的檔案包成一個zip回傳給使用者
                 CompressionOptions co1 = new CompressionOptions();
                 co1.setFormat("zip");
+                Archiver zipArchiver = ArchiverFactory.getArchiver(co1.getFormat());
                 File zipFile = new File(tempExtractFile + "/extractFile.zip");
-                archiver.compress(tempExtractFile, zipFile, co1);
+                zipArchiver.compress(tempExtractFile, zipFile, co1);
                 return zipFile;
             }
         } finally {

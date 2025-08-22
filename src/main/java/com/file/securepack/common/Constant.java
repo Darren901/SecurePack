@@ -6,7 +6,7 @@ package com.file.securepack.common;
  */
 public class Constant {
 
-    public static final String WORK_DIR = "/tmp/securepack";
+    public static final String WORK_DIR = System.getProperty("user.home") + "/tmp/securepack";
     public enum ACTION{
         COMPRESS("compress"), DECOMPRESS("decompress");
 
