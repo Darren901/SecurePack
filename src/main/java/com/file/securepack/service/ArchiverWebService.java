@@ -18,6 +18,9 @@ public class ArchiverWebService {
         try{
             Archiver archiver = ArchiverFactory.getArchiver(co.getFormat());
 
+            File workDirFile = new File(Constant.WORK_DIR);
+            if(!workDirFile.exists()){workDirFile.mkdirs();}
+
             String uploadPath = Constant.WORK_DIR + "/" + file.getOriginalFilename();
             uploadFile = new File(uploadPath);
             if(!uploadFile.exists()) uploadFile.getParentFile().mkdirs();

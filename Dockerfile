@@ -1,4 +1,4 @@
-# 使用帶 JDK 17 的官方映像
+# 使用帶 JDK 21 的官方映像
 FROM eclipse-temurin:21-jdk-jammy
 
 # 設定工作目錄

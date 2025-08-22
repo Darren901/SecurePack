@@ -16,6 +16,15 @@ import java.io.RandomAccessFile;
 
 @Slf4j
 public class SevenZArchiver implements Archiver {
+    static {
+        try {
+            SevenZip.initSevenZipFromPlatformJAR();
+            System.out.println("7-Zip-JBinding library was initialized");
+        } catch (SevenZipNativeInitializationException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void compress(File input, File output, CompressionOptions options) throws IOException {
         IOutCreateArchive7z outArchive = null;
