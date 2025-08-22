@@ -1,5 +1,9 @@
 package com.file.securepack.archive;
 
+/**
+ * @author Darren
+ * @date 2025-08-22
+ */
 public class ArchiverFactory {
     public static Archiver getArchiver(String format) {
         return switch (format.toLowerCase()) {

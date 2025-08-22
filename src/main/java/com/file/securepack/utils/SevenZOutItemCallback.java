@@ -9,6 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.Date;
 
+/**
+ * @author Darren
+ * @date 2025-08-22
+ */
 public class SevenZOutItemCallback implements IOutCreateCallback<IOutItem7z>, ICryptoGetTextPassword {
     private final File fileToCompress;
     private final String password;

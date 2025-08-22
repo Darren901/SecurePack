@@ -14,6 +14,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+/**
+ * @author Darren
+ * @date 2025-08-22
+ */
 @Slf4j
 public class SevenZArchiver implements Archiver {
     static {

@@ -11,11 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author Darren
+ * @date 2025-08-22
+ */
 @Slf4j
 public class RarArchiver implements Archiver {
     @Override
     public void compress(File input, File output, CompressionOptions options) throws IOException {
-        log.debug("傳進來的password: {}", options.getPassword());
+        log.info("傳進來的password: {}", options.getPassword());
         try {
             String rarExeName = "rar.exe";
 
@@ -25,43 +29,39 @@ public class RarArchiver implements Archiver {
                     throw new IOException("無法找到壓縮工具: " + rarExeName);
                 }
 
-                // 創建臨時檔案
                 Path tempRar = Files.createTempFile("rar_temp", ".exe");
                 Files.copy(is, tempRar, StandardCopyOption.REPLACE_EXISTING);
                 tempRar.toFile().setExecutable(true);
 
                 try {
-                    // 建立命令列參數
                     List<String> commands = new ArrayList<>();
                     commands.add(tempRar.toString());
-                    commands.add("a"); // 添加到壓縮檔
+                    commands.add("a");
 
                     if (options.getPassword() != null && !options.getPassword().isEmpty()) {
-                        commands.add("-p" + options.getPassword()); // 設定密碼
+                        commands.add("-p" + options.getPassword());
                     }
 
                     commands.add("-ep1"); // 不包含基本目錄名稱
                     commands.add("-m5"); // 最大壓縮率
-                    commands.add(output.getAbsolutePath()); // 目標 RAR 檔案路徑
-                    commands.add(input.getAbsolutePath()); // 源文件或目錄路徑
+                    commands.add(output.getAbsolutePath());
+                    commands.add(input.getAbsolutePath());
 
                     ProcessBuilder pb = new ProcessBuilder(commands);
 
                     log.info("------>準備開始用 RAR 壓縮");
 
-                    // 輸出執行過程的日誌
+                    // 輸出執行過程
                     pb.redirectErrorStream(true);
                     Process process = pb.start();
 
-                    // 讀取並記錄輸出
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            log.debug("RAR output: {}", line);
+                            log.info("RAR output: {}", line);
                         }
                     }
 
-                    // 等待進程結束，設定最大等待時間
                     boolean completed = process.waitFor(5, TimeUnit.MINUTES);
 
                     if (!completed) {
@@ -90,7 +90,7 @@ public class RarArchiver implements Archiver {
     public void decompress(File input, File output, CompressionOptions options) throws IOException {
         if (!output.exists())
             output.mkdirs();
-        log.debug("進來的password: {}", options.getPassword());
+        log.info("進來的password: {}", options.getPassword());
         try {
             String unrarExeName = "unrar.exe";
 
@@ -100,46 +100,42 @@ public class RarArchiver implements Archiver {
                     throw new IOException("無法找到解壓縮工具: " + unrarExeName);
                 }
 
-                // 創建臨時檔案
                 Path tempUnrar = Files.createTempFile("unrar_temp", ".exe");
                 Files.copy(is, tempUnrar, StandardCopyOption.REPLACE_EXISTING);
                 tempUnrar.toFile().setExecutable(true);
 
                 try {
-                    // 建立命令列參數
                     ProcessBuilder pb;
                     if (options.getPassword() != null && !options.getPassword().isEmpty()) {
-                        pb = new ProcessBuilder(tempUnrar.toString(), "x", // 提取並保留路徑
-                                "-p" + options.getPassword(), // 設定密碼
+                        pb = new ProcessBuilder(tempUnrar.toString(), "x",
+                                "-p" + options.getPassword(),
                                 "-o+", // 覆蓋已存在的檔案
-                                input.getAbsolutePath(), // RAR 檔案路徑
-                                output.getAbsolutePath() + "/" // 目標目錄
+                                input.getAbsolutePath(),
+                                output.getAbsolutePath() + "/"
                         );
                     } else {
-                        pb = new ProcessBuilder(tempUnrar.toString(), "x", // 提取並保留路徑
+                        pb = new ProcessBuilder(tempUnrar.toString(), "x",
                                 "-p-",
                                 "-o+", // 覆蓋已存在的檔案
                                 "-y",
-                                input.getAbsolutePath(), // RAR 檔案路徑
-                                output.getAbsolutePath() + "/" // 目標目錄
+                                input.getAbsolutePath(),
+                                output.getAbsolutePath() + "/"
                         );
                     }
 
                     log.info("------>準備開始用rar解壓縮");
 
-                    // 輸出執行過程的日誌
+                    // 輸出執行過程
                     pb.redirectErrorStream(true);
                     Process process = pb.start();
 
-                    // 讀取並記錄輸出
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            log.debug("UnRAR output: {}", line);
+                            log.info("UnRAR output: {}", line);
                         }
                     }
 
-                    // 等待進程結束，設定最大等待時間
                     boolean completed = process.waitFor(5, TimeUnit.MINUTES);
 
                     if (!completed) {

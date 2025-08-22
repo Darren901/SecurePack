@@ -1,5 +1,9 @@
 package com.file.securepack.common;
 
+/**
+ * @author Darren
+ * @date 2025-08-22
+ */
 public class Constant {
 
     public static final String WORK_DIR = "/tmp/securepack";
